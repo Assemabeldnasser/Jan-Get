@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff9fb;
+  --foreground: #4a3740;
+
+  --surface: #ffffff;
+  --surface-soft: #fff4f7;
+
+  --text-primary: #4a3740;
+  --text-secondary: #7f6a73;
+  --text-muted: #9d8991;
+
+  --border: #f0dce3;
+
+  --brand: #c77d98;
+  --brand-strong: #b86f88;
+  --brand-soft: #f4d7e1;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --background: #241b20;
+  --foreground: #f8edf1;
+
+  --surface: #302329;
+  --surface-soft: #3a2a32;
+
+  --text-primary: #f8edf1;
+  --text-secondary: #d8c3ca;
+  --text-muted: #bba5ae;
+
+  --border: #543d47;
+
+  --brand: #edabc1;
+  --brand-strong: #f0b6ca;
+  --brand-soft: #523844;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background-color: var(--background);
+  color: var(--text-primary);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
+
+* {
+  border-color: var(--border);
+}
+
+/* 
+Background       #FFF8FA
+Soft Pink        #F3D6DF
+Dusty Pink       #D99AAE
+Rose             #C77D98
+Deep Rose        #A85F78
+Cream            #FFFDF9
+Dark Plum        #241B20 */
