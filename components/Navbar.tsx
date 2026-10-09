@@ -22,22 +22,22 @@ const languageOptions: {
   label: string;
   flag: string;
 }[] = [
-  {
-    code: "en",
-    label: "English",
-    flag: "/images/flags/GB.jpg",
-  },
-  {
-    code: "de",
-    label: "Deutsch",
-    flag: "/images/flags/DE.jpg",
-  },
-  {
-    code: "ar",
-    label: "العربية",
-    flag: "/images/flags/EG.jpg",
-  },
-];
+    {
+      code: "en",
+      label: "English",
+      flag: "/images/flags/GB.jpg",
+    },
+    {
+      code: "de",
+      label: "Deutsch",
+      flag: "/images/flags/DE.jpg",
+    },
+    {
+      code: "ar",
+      label: "العربية",
+      flag: "/images/flags/EG.jpg",
+    },
+  ];
 
 const accountLabels: Record<Language, string> = {
   en: "My Account",
@@ -177,7 +177,24 @@ export default function Navbar() {
         <div className="hidden lg:flex lg:items-center">
 
           {/* BRAND */}
-          <div className="flex shrink-0 items-center gap-3">
+
+          <Link
+            href="/"
+            onClick={closeMenu}
+            className="inline-flex shrink-0 items-center"
+            aria-label="JAN-GET Home"
+          >
+            <Image
+              src="/images/brand/logo.png"
+              alt="JAN-GET"
+              width={60}
+              height={40}
+              priority
+              className="h-14 w-auto object-contain"
+            />
+          </Link>
+
+          {/* <div className="flex shrink-0 items-center gap-3">
             <Link
               href="/"
               onClick={closeMenu}
@@ -217,7 +234,7 @@ export default function Navbar() {
                 </span>
               </div>
             </Link>
-          </div>
+          </div> */}
 
           {/* NAVIGATION */}
           <div className="ml-8 flex min-w-0 flex-1 items-center justify-start gap-1 xl:ml-10 xl:gap-2">
@@ -253,9 +270,8 @@ export default function Navbar() {
                   <span>{accountLabel}</span>
 
                   <span
-                    className={`text-xs transition-transform ${
-                      accountOpen ? "rotate-180" : ""
-                    }`}
+                    className={`text-xs transition-transform ${accountOpen ? "rotate-180" : ""
+                      }`}
                   >
                     ⌄
                   </span>
@@ -361,11 +377,10 @@ export default function Navbar() {
                       onClick={() =>
                         handleLanguageChange(option.code)
                       }
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                        language === option.code
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${language === option.code
                           ? "bg-[var(--brand-soft)] font-semibold text-[var(--brand-strong)]"
                           : "text-[var(--text-primary)] hover:bg-[var(--surface-soft)]"
-                      }`}
+                        }`}
                     >
                       <Image
                         src={option.flag}
@@ -465,9 +480,8 @@ export default function Navbar() {
                   </span>
 
                   <span
-                    className={`shrink-0 text-[10px] transition-transform ${
-                      accountOpen ? "rotate-180" : ""
-                    }`}
+                    className={`shrink-0 text-[10px] transition-transform ${accountOpen ? "rotate-180" : ""
+                      }`}
                   >
                     ⌄
                   </span>
@@ -558,11 +572,10 @@ export default function Navbar() {
                       onClick={() =>
                         handleLanguageChange(option.code)
                       }
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                        language === option.code
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${language === option.code
                           ? "bg-[var(--brand-soft)] font-semibold text-[var(--brand-strong)]"
                           : "text-[var(--text-primary)] hover:bg-[var(--surface-soft)]"
-                      }`}
+                        }`}
                     >
                       <Image
                         src={option.flag}
