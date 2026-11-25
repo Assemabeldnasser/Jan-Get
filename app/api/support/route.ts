@@ -1,11 +1,8 @@
+
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
 import { auth } from "@/lib/auth";
-
-const resend = new Resend(
-  process.env.RESEND_API_KEY
-);
 
 const fromEmail =
   process.env.RESEND_FROM_EMAIL ||
@@ -16,6 +13,18 @@ const supportEmail =
   process.env.ADMIN_EMAILS
     ?.split(",")[0]
     ?.trim();
+
+function getResend(): Resend {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      "Missing RESEND_API_KEY environment variable."
+    );
+  }
+
+  return new Resend(apiKey);
+}
 
 type SupportBody = {
   name?: string;
@@ -160,8 +169,7 @@ export async function POST(request: Request) {
     if (!message) {
       return NextResponse.json(
         {
-          error:
-            "Message is required.",
+          error: "Message is required.",
         },
         { status: 400 }
       );
@@ -208,6 +216,8 @@ export async function POST(request: Request) {
         /\n/g,
         "<br />"
       );
+
+    const resend = getResend();
 
     const result =
       await resend.emails.send({
