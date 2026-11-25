@@ -1,14 +1,18 @@
+
 import { betterAuth } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
-import { DatabaseSync } from "node:sqlite";
+import { mongodbAdapter } from "@better-auth/mongo-adapter";
 import { Resend } from "resend";
 
-const database = new DatabaseSync("database.sqlite");
+import { mongoClient, mongoDb } from "@/lib/mongodb";
 
-// const resend = new Resend(process.env.RESEND_API_KEY);
+const secret = process.env.BETTER_AUTH_SECRET;
 
-// const fromEmail =
-//   process.env.RESEND_FROM_EMAIL || "JAN-GET <onboarding@resend.dev>";
+if (!secret || secret.length < 32) {
+  throw new Error(
+    "BETTER_AUTH_SECRET must be set to a strong secret of at least 32 characters."
+  );
+}
 
 const getResend = () => {
   const apiKey = process.env.RESEND_API_KEY;
@@ -21,38 +25,43 @@ const getResend = () => {
 };
 
 const fromEmail =
-  process.env.RESEND_FROM_EMAIL || "JAN-GET <onboarding@resend.dev>";
+  process.env.RESEND_FROM_EMAIL ||
+  "JAN-GET <noreply@janget.de>";
 
-// const supportEmail =
-//   process.env.SUPPORT_EMAIL || "support@jan-get.de";
+const escapeHtml = (value: string): string =>
+  value.replace(/[&<>"']/g, (character) => {
+    const entities: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+
+    return entities[character];
+  });
+
+const trustedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://192.168.178.67:3000",
+  "https://janget.de",
+  "https://www.janget.de",
+  "https://jan-get-lkbcl.ondigitalocean.app",
+];
 
 export const auth = betterAuth({
-  database,
+  database: mongodbAdapter(mongoDb, {
+    client: mongoClient,
+  }),
 
-  secret:
-    process.env.BETTER_AUTH_SECRET ||
-    "development-secret-change-this-in-production",
+  secret,
 
   baseURL:
-    process.env.BETTER_AUTH_URL || "http://localhost:3000",
-
-  /*
-   * Allowed origins for local development.
-   *
-   * localhost:
-   * Used when the application is opened on this computer.
-   *
-   * 127.0.0.1:
-   * Alternative local address for this computer.
-   *
-   * 192.168.178.67:
-   * Used when another device on the same network opens the application.
-   */
-  trustedOrigins: [
+    process.env.BETTER_AUTH_URL ||
     "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://192.168.178.67:3000",
-  ],
+
+  trustedOrigins,
 
   user: {
     additionalFields: {
@@ -99,14 +108,6 @@ export const auth = betterAuth({
     },
   },
 
-  /*
-   * We intentionally check for an existing email here because
-   * the registration UI should clearly tell the user that the
-   * email is already registered.
-   *
-   * Better Auth normally hides this information when
-   * requireEmailVerification is enabled.
-   */
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path !== "/sign-up/email") {
@@ -154,14 +155,9 @@ export const auth = betterAuth({
       };
       url: string;
     }) => {
-      console.log("=================================");
-      console.log("JAN-GET password reset email");
-      console.log("To:", user.email);
-      console.log("Reset URL:", url);
-
       try {
-        // Add resend line below
         const resend = getResend();
+
         const result = await resend.emails.send({
           from: fromEmail,
           to: user.email,
@@ -178,7 +174,7 @@ export const auth = betterAuth({
             >
               <h2>Reset your JAN-GET password</h2>
 
-              <p>Hello ${user.name},</p>
+              <p>Hello ${escapeHtml(user.name)},</p>
 
               <p>
                 We received a request to reset your JAN-GET password.
@@ -190,7 +186,7 @@ export const auth = betterAuth({
 
               <p>
                 <a
-                  href="${url}"
+                  href="${escapeHtml(url)}"
                   style="
                     display:inline-block;
                     padding:12px 20px;
@@ -221,8 +217,16 @@ export const auth = betterAuth({
           `,
         });
 
-        console.log("Resend result:", result);
-        console.log("=================================");
+        if (result.error) {
+          console.error(
+            "JAN-GET password reset email failed:",
+            result.error
+          );
+
+          throw new Error("Failed to send password reset email.");
+        }
+
+        console.log("JAN-GET password reset email sent.");
       } catch (error) {
         console.error(
           "JAN-GET password reset email failed:",
@@ -235,9 +239,6 @@ export const auth = betterAuth({
   },
 
   emailVerification: {
-    /*
-     * Explicitly send the verification email after sign-up.
-     */
     sendOnSignUp: true,
 
     sendVerificationEmail: async ({
@@ -250,15 +251,9 @@ export const auth = betterAuth({
       };
       url: string;
     }) => {
-      console.log("=================================");
-      console.log("JAN-GET verification email");
-      console.log("To:", user.email);
-      console.log("Verification URL:", url);
-      console.log("From:", fromEmail);
-
       try {
-        // Add resend line below
         const resend = getResend();
+
         const result = await resend.emails.send({
           from: fromEmail,
           to: user.email,
@@ -275,7 +270,7 @@ export const auth = betterAuth({
             >
               <h2>Welcome to JAN-GET!</h2>
 
-              <p>Hello ${user.name},</p>
+              <p>Hello ${escapeHtml(user.name)},</p>
 
               <p>
                 Thank you for creating your JAN-GET account.
@@ -288,7 +283,7 @@ export const auth = betterAuth({
 
               <p>
                 <a
-                  href="${url}"
+                  href="${escapeHtml(url)}"
                   style="
                     display:inline-block;
                     padding:12px 20px;
@@ -316,8 +311,16 @@ export const auth = betterAuth({
           `,
         });
 
-        console.log("Resend result:", result);
-        console.log("=================================");
+        if (result.error) {
+          console.error(
+            "JAN-GET verification email failed:",
+            result.error
+          );
+
+          throw new Error("Failed to send verification email.");
+        }
+
+        console.log("JAN-GET verification email sent.");
       } catch (error) {
         console.error(
           "JAN-GET verification email failed:",
