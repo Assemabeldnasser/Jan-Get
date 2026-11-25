@@ -5,7 +5,20 @@ import { Resend } from "resend";
 
 const database = new DatabaseSync("database.sqlite");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// const resend = new Resend(process.env.RESEND_API_KEY);
+
+// const fromEmail =
+//   process.env.RESEND_FROM_EMAIL || "JAN-GET <onboarding@resend.dev>";
+
+const getResend = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("Missing RESEND_API_KEY environment variable.");
+  }
+
+  return new Resend(apiKey);
+};
 
 const fromEmail =
   process.env.RESEND_FROM_EMAIL || "JAN-GET <onboarding@resend.dev>";
@@ -147,6 +160,8 @@ export const auth = betterAuth({
       console.log("Reset URL:", url);
 
       try {
+        // Add resend line below
+        const resend = getResend();
         const result = await resend.emails.send({
           from: fromEmail,
           to: user.email,
@@ -242,6 +257,8 @@ export const auth = betterAuth({
       console.log("From:", fromEmail);
 
       try {
+        // Add resend line below
+        const resend = getResend();
         const result = await resend.emails.send({
           from: fromEmail,
           to: user.email,
