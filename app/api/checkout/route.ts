@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { DatabaseSync } from "node:sqlite";
 
 import { auth } from "@/lib/auth";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 
 import {
   getProductById,
@@ -2593,7 +2593,7 @@ export async function POST(
      */
 
     const checkoutSession =
-      await stripe.checkout.sessions.create(
+      await getStripe().checkout.sessions.create(
         {
           mode:
             "payment",

@@ -3,7 +3,8 @@ import Stripe from "stripe";
 import { DatabaseSync } from "node:sqlite";
 import { Resend } from "resend";
 
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
+ 
 import { getProductById } from "@/lib/product-db";
 
 const database = new DatabaseSync("database.sqlite");
@@ -280,9 +281,15 @@ database.exec(`
     ON voucher_usages(voucher_id, user_key);
 `);
 
-const resend = new Resend(
-  process.env.RESEND_API_KEY
-);
+function getResend(): Resend {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("Missing RESEND_API_KEY environment variable.");
+  }
+
+  return new Resend(apiKey);
+}
 
 const fromEmail =
   process.env.RESEND_FROM_EMAIL ||
@@ -1401,7 +1408,7 @@ async function refundOrder(
       : paymentIntent.id;
 
   const refund =
-    await stripe.refunds.create(
+    await getStripe().refunds.create(
       {
         payment_intent:
           paymentIntentId,
@@ -2535,6 +2542,8 @@ async function sendPaymentConfirmationEmail(
     </div>
   `;
 
+  const resend = getResend();
+
   const result =
     await resend.emails.send({
       from: fromEmail,
@@ -2774,6 +2783,26 @@ export async function POST(
     );
   }
 
+  let stripeClient: Stripe;
+
+  try {
+    stripeClient = getStripe();
+  } catch (error) {
+    console.error(
+      "Stripe client initialization failed:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        error: "Stripe is not configured.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+
   let event: Stripe.Event;
 
   try {
@@ -2781,7 +2810,7 @@ export async function POST(
       await request.text();
 
     event =
-      stripe.webhooks.constructEvent(
+      stripeClient.webhooks.constructEvent(
         body,
         signature,
         webhookSecret

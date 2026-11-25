@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local SQLite databases, backups, and sidecar files
+/database*.sqlite
+/database*.sqlite-*
+# Temporary product data export
+/product-data-export.json
