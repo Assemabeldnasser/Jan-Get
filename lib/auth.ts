@@ -6,8 +6,18 @@ import { Resend } from "resend";
 
 import { mongoClient, mongoDb } from "@/lib/mongodb";
 
-const secret = process.env.BETTER_AUTH_SECRET;
+// During Next.js production build, DigitalOcean may not expose
+// runtime secrets to the Docker build stage.
+const isNextBuild =
+  process.env.NEXT_PHASE === "phase-production-build";
 
+const secret =
+  process.env.BETTER_AUTH_SECRET ||
+  (isNextBuild
+    ? "JAN-GET-BUILD-ONLY-PLACEHOLDER-SECRET-DO-NOT-USE"
+    : undefined);
+
+// Never allow the application to run without the real secret.
 if (!secret || secret.length < 32) {
   throw new Error(
     "BETTER_AUTH_SECRET must be set to a strong secret of at least 32 characters."
