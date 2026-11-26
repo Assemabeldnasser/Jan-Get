@@ -147,7 +147,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
 
-    requireEmailVerification: false,
+    requireEmailVerification: true,
 
     minPasswordLength: 8,
 
@@ -251,6 +251,10 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: true,
 
+    sendOnSignIn: true,
+
+    expiresIn: 3600,
+
     sendVerificationEmail: async ({
       user,
       url,
@@ -306,6 +310,10 @@ export const auth = betterAuth({
                 >
                   Verify my email
                 </a>
+              </p>
+
+              <p>
+                This link will expire after 1 hour.
               </p>
 
               <p>
