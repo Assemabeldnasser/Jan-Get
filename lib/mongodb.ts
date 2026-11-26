@@ -2,12 +2,13 @@
 import { MongoClient, type Db } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
-
-if (!uri) {
-  throw new Error("Missing MONGODB_URI environment variable");
-}
-
 const dbName = process.env.MONGODB_DB || "janget";
+
+// Next.js may import this module during Docker build.
+// Use a local placeholder only when the production build has no URI.
+// The real application runtime must have MONGODB_URI configured.
+const connectionUri =
+  uri || "mongodb://127.0.0.1:27017";
 
 type MongoGlobal = typeof globalThis & {
   mongoClient?: MongoClient;
@@ -17,7 +18,7 @@ type MongoGlobal = typeof globalThis & {
 const globalForMongo = globalThis as MongoGlobal;
 
 export const mongoClient =
-  globalForMongo.mongoClient ?? new MongoClient(uri);
+  globalForMongo.mongoClient ?? new MongoClient(connectionUri);
 
 if (process.env.NODE_ENV !== "production") {
   globalForMongo.mongoClient = mongoClient;
@@ -26,6 +27,12 @@ if (process.env.NODE_ENV !== "production") {
 export const mongoDb: Db = mongoClient.db(dbName);
 
 function getClientPromise(): Promise<MongoClient> {
+  if (!process.env.MONGODB_URI) {
+    throw new Error(
+      "Missing MONGODB_URI environment variable at runtime"
+    );
+  }
+
   if (!globalForMongo.mongoClientPromise) {
     globalForMongo.mongoClientPromise = mongoClient.connect();
   }
