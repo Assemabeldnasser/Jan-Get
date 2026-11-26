@@ -266,13 +266,11 @@ type SQLInputValue =
   | null
   | Uint8Array;
 
-const database =
-  new DatabaseSync(
-    "database.sqlite"
-  );
+const database = new DatabaseSync("database.sqlite", {
+  timeout: 5000,
+});
 
 database.exec(`
-  PRAGMA journal_mode = WAL;
   PRAGMA busy_timeout = 5000;
   PRAGMA foreign_keys = ON;
 `);
